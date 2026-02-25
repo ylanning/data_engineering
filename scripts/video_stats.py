@@ -1,3 +1,5 @@
+from datetime import date
+
 import requests
 import os
 import json
@@ -111,6 +113,13 @@ def extract_video_stats(video_ids: list[str]) -> list[dict[str, str]]:
         raise e
 
 
+def save_stats_to_json(extracted_stats: list[dict[str, str]]) -> None:
+    file_path = f"./json/video_stats_{date.today()}.json"
+
+    with open(file_path, "w", encoding="utf-8") as json_file:
+        json.dump(extracted_stats, json_file, indent=4, ensure_ascii=False)
+
+
 from pprint import pprint
 
 if __name__ == "__main__":
@@ -119,7 +128,7 @@ if __name__ == "__main__":
         print(f"Playlist ID: {playlist_id}")
         video_ids = get_playlist_items(playlist_id)
         # print(f"Video IDs: {video_ids}")
-        extract_video_stats(video_ids)
-        pprint(extract_video_stats(video_ids))
+        video_stats = extract_video_stats(video_ids)
+        save_stats_to_json(video_stats)
     else:
         print("Failed to retrieve playlist ID.")
