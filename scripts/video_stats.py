@@ -114,7 +114,7 @@ def extract_video_stats(video_ids: list[str]) -> list[dict[str, str]]:
 
 
 def save_stats_to_json(extracted_stats: list[dict[str, str]]) -> None:
-    file_path = f"./json/video_stats_{date.today()}.json"
+    file_path = f"./datas/video_stats_{date.today()}.json"
 
     with open(file_path, "w", encoding="utf-8") as json_file:
         json.dump(extracted_stats, json_file, indent=4, ensure_ascii=False)
