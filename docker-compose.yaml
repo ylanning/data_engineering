@@ -85,6 +85,9 @@ x-airflow-common:
     # AIRFLOW_VAR_{VARIABLE_NAME}
     AIRFLOW_VAR_API_KEY: ${API_KEY}
     AIRFLOW_VAR_CHANNEL_HANDLE: ${CHANNEL_HANDLE}
+    # SSL certificates for requests library
+    REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+    SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
     # Postgres databases environment variables - Needed for integration and data quality tests
     ELT_DATABASE_NAME: ${ELT_DATABASE_NAME}
     ELT_DATABASE_USERNAME: ${ELT_DATABASE_USERNAME}

@@ -15,9 +15,8 @@ def get_conn_cursor() -> RealDictCursor:
 
 def close_conn_cursor(conn, cur) -> None:
     """Close the connection cursor."""
-    if cur:
-        cur.close()
-        conn.close()
+    cur.close()
+    conn.close()
 
 
 def create_schema(schema: str) -> None:
