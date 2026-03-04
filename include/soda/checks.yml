@@ -1,0 +1,17 @@
+checks for youtube_video_stats:
+  - missing_count(video_id) = 0
+  - duplicate_count(video_id) = 0
+
+  - likes_count_greater_than_vid_views = 0:
+      name: Check for like_count greater than view_count
+      likes_count_greater_than_vid_views query: |
+        SELECT COUNT(*)
+        FROM youtube_video_stats
+        WHERE like_count > view_count
+
+  - comments_count_greater_than_vid_views = 0:
+      name: Check for comment_count greater than view_count
+      comments_count_greater_than_vid_views query: |
+        SELECT COUNT(*)
+        FROM youtube_video_stats
+        WHERE comment_count > view_count

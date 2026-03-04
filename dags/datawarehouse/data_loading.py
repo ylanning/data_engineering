@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import date
 import logging
 
@@ -6,8 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 def load_data():
-
-    file_path = f"../data/video_stats_{date.today()}.json"
+    # Get absolute path: go up from dags/datawarehouse/ to project root, then into data/
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(script_dir, "..", "..", "data")
+    file_path = os.path.join(data_dir, f"video_stats_{date.today()}.json")
 
     try:
         logger.info(f"Processing file: {file_path}")

@@ -88,6 +88,8 @@ x-airflow-common:
     # SSL certificates for requests library
     REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
     SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+    # Disable Soda telemetry to avoid SSL issues
+    SODA_TELEMETRY: disable
     # Postgres databases environment variables - Needed for integration and data quality tests
     ELT_DATABASE_NAME: ${ELT_DATABASE_NAME}
     ELT_DATABASE_USERNAME: ${ELT_DATABASE_USERNAME}
@@ -196,8 +198,9 @@ services:
 
   airflow-worker:
     <<: *airflow-common
-    command: celery worker
+    command: celery worker -H celery@airflow-worker
     container_name: airflow-worker
+    hostname: airflow-worker
     healthcheck:
       test:
         - "CMD-SHELL"

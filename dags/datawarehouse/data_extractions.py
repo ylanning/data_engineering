@@ -1,9 +1,18 @@
 import logging
-from airflow.decorators import task
 
 logger = logging.getLogger(__name__)
 TABLE = "youtube_video_stats"
-VALID_SCHEMAS = {"staging", "production"}
+VALID_SCHEMAS = {"staging", "core"}
+
+# Map JSON keys to database column names
+JSON_TO_DB_COLUMN = {
+    "title": "video_title",
+}
+
+
+def _transform_row(row: dict) -> dict:
+    """Transform JSON row keys to database column names."""
+    return {JSON_TO_DB_COLUMN.get(k, k): v for k, v in row.items()}
 
 
 def insert_rows(cur, conn, schema: str, rows: list[dict]):
@@ -11,9 +20,7 @@ def insert_rows(cur, conn, schema: str, rows: list[dict]):
     if schema not in VALID_SCHEMAS:
         raise ValueError(f"Invalid schema: {schema}. Must be one of {VALID_SCHEMAS}")
 
-    is_staging = schema == "staging"
-
-    if is_staging:
+    if schema == "staging":
         columns = (
             "video_id",
             "video_title",
@@ -37,11 +44,12 @@ def insert_rows(cur, conn, schema: str, rows: list[dict]):
 
     try:
         for row in rows:
+            transformed = _transform_row(row)
             placeholders = ", ".join(f"%({col})s" for col in columns)
             col_names = ", ".join(f'"{col}"' for col in columns)
             cur.execute(
                 f"INSERT INTO {schema}.{TABLE} ({col_names}) VALUES ({placeholders})",
-                row,
+                transformed,
             )
         conn.commit()
         logger.info(f"Inserted {len(rows)} rows into {schema}.{TABLE}")
@@ -56,9 +64,7 @@ def update_rows(cur, conn, schema: str, rows: list[dict]):
     if schema not in VALID_SCHEMAS:
         raise ValueError(f"Invalid schema: {schema}. Must be one of {VALID_SCHEMAS}")
 
-    is_staging = schema == "staging"
-
-    if is_staging:
+    if schema == "staging":
         columns = (
             "video_title",
             "published_at",
@@ -80,38 +86,33 @@ def update_rows(cur, conn, schema: str, rows: list[dict]):
 
     try:
         for row in rows:
+            transformed = _transform_row(row)
             set_clause = ", ".join(f'"{col}" = %({col})s' for col in columns)
             cur.execute(
-                f'UPDATE {schema}.{TABLE} SET {set_clause} WHERE "video_id" = %(video_id)s AND "published_at" = %(published_at)s"',
-                row,
+                f'UPDATE {schema}.{TABLE} SET {set_clause} WHERE "video_id" = %(video_id)s',
+                transformed,
             )
         conn.commit()
-        logger.info(f"Updated row with video_id {rows['video_id']} in {schema}.{TABLE}")
+        logger.info(f"Updated {len(rows)} rows in {schema}.{TABLE}")
     except Exception as e:
-        logger.error(
-            f"Error updating row with video_id {rows['video_id']} in {schema}.{TABLE}: {e}"
-        )
+        logger.error(f"Error updating rows in {schema}.{TABLE}: {e}")
         conn.rollback()
         raise
 
 
-def delete_rows(cur, conn, schema: str, rows: set[str]):
+def delete_rows(cur, conn, schema: str, rows: list[dict]):
     """Delete video stats rows from the specified schema table."""
     if schema not in VALID_SCHEMAS:
         raise ValueError(f"Invalid schema: {schema}. Must be one of {VALID_SCHEMAS}")
 
     try:
-
-        ids_to_delete = f"""{', '.join(f"'{row['video_id']}'" for row in rows)}"""
+        ids_to_delete = ", ".join(f"'{row['video_id']}'" for row in rows)
         cur.execute(
             f'DELETE FROM {schema}.{TABLE} WHERE "video_id" IN ({ids_to_delete})'
         )
         conn.commit()
-        logger.info(
-            f"Deleted rows with video_ids { ids_to_delete} from {schema}.{TABLE}"
-        )
+        logger.info(f"Deleted {len(rows)} rows from {schema}.{TABLE}")
     except Exception as e:
-        logger.error(
-            f"Error deleting rows with video_ids {ids_to_delete} from {schema}.{TABLE}: {e}"
-        )
+        logger.error(f"Error deleting rows from {schema}.{TABLE}: {e}")
+        conn.rollback()
         raise

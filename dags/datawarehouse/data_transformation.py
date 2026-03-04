@@ -2,9 +2,9 @@ from datetime import timedelta, datetime
 
 
 def parse_duration(duration):
-    """Convert duration string in format 'HH:MM:SS' to total seconds."""
+    """Convert ISO 8601 duration (e.g., PT11H48M30S) to timedelta."""
     duration_str = duration.replace("P", "").replace("T", "")
-    components = {"D", "H", "M", "S"}
+    components = ("D", "H", "M", "S")  # Must be in order: days, hours, minutes, seconds
     values = {"D": 0, "H": 0, "M": 0, "S": 0}
 
     for component in components:

@@ -8,6 +8,9 @@ from api.video_stats import (
     extract_video_stats,
 )
 
+from datawarehouse.data_warehouse import staging_table, core_table
+from dataquality.soda import yt_elt_data_quality
+
 # Default Args
 default_args = {
     "owner": "data engineering",
@@ -22,6 +25,10 @@ default_args = {
     "start_date": datetime(2025, 1, 1, tzinfo=pendulum.timezone("UTC")),
     "end_date": None,
 }
+
+# Variables
+staging_schema = "staging"
+core_schema = "core"
 
 with DAG(
     dag_id="import_json",
@@ -39,3 +46,34 @@ with DAG(
 
     # Task dependencies
     playlist_id >> video_ids >> extracted_stats >> save_to_json
+
+with DAG(
+    dag_id="update_db",
+    default_args=default_args,
+    description="A DAG to update the staging and core tables in the Postgres database with the latest data from the YouTube API",
+    schedule="0 15 * * *",
+    catchup=False,
+) as dag:
+
+    # Tasks
+    update_staging = staging_table()
+    update_core = core_table()
+
+    # Task dependencies
+    update_staging >> update_core
+
+
+with DAG(
+    dag_id="data_quality_checks",
+    default_args=default_args,
+    description="A DAG to perform data quality checks on the staging and core tables in the Postgres database",
+    schedule="0 16 * * *",
+    catchup=False,
+) as dag:
+
+    # Tasks
+    soda_validate_staging = yt_elt_data_quality(staging_schema)
+    soda_validate_core = yt_elt_data_quality(core_schema)
+
+    # Task dependencies
+    soda_validate_staging >> soda_validate_core

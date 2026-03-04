@@ -1,7 +1,5 @@
 from .data_extractions import insert_rows, update_rows, delete_rows
-from .data_transformation import transform_data
 from .data_loading import load_data
-from .data_transformation import transform_data
 from .data_utils import (
     get_conn_cursor,
     close_conn_cursor,
@@ -9,6 +7,7 @@ from .data_utils import (
     create_table,
     get_video_ids_from_db,
 )
+from .data_transformation import transform_data
 
 import logging
 from airflow.decorators import task
@@ -53,6 +52,7 @@ def staging_table():
             close_conn_cursor(conn, cur)
 
 
+@task
 def core_table():
 
     schema = "core"
@@ -73,8 +73,10 @@ def core_table():
 
             current_video_ids.add(row["video_id"])
             if len(table_ids) == 0 or row["video_id"] not in table_ids:
+                transformed_row = transform_data(row)
                 insert_rows(cur, conn, schema, [row])
             elif row["video_id"] in table_ids:
+                transformed_row = transform_data(row)
                 update_rows(cur, conn, schema, [row])
 
         video_ids_to_be_deleted = set(table_ids) - current_video_ids

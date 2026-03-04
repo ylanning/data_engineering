@@ -12,7 +12,7 @@ USER airflow
 
 # Install project dependencies using pip (exported from Poetry)
 COPY requirements-main.txt ./
-RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements-main.txt certifi
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements-main.txt
 
 # Copy the rest of your project files into the container
 COPY . .

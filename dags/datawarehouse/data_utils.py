@@ -1,7 +1,7 @@
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from psycopg2.extras import RealDictCursor
 
-table = "youtube_api_stats"
+TABLE = "youtube_video_stats"
 
 
 def get_conn_cursor() -> RealDictCursor:
@@ -46,13 +46,13 @@ def create_table(schema: str, table: str) -> None:
                 comment_count INT
             );
         """
-    else:
+    elif schema == "core":
         table_sql = f"""
             CREATE TABLE IF NOT EXISTS {schema}.{table} (
                 video_id VARCHAR(11) PRIMARY KEY NOT NULL,
                 video_title TEXT NOT NULL,
                 published_at TIMESTAMP NOT NULL,
-                duration TIME NOT NULL ,
+                duration TIME NOT NULL,
                 video_type VARCHAR(10) NOT NULL,
                 view_count INT,
                 like_count INT,
@@ -68,7 +68,7 @@ def create_table(schema: str, table: str) -> None:
 def get_video_ids_from_db(cur, schema: str) -> list[str]:
     """Fetch video IDs from the specified table."""
 
-    cur.execute(f"SELECT video_id FROM {schema}.{table};")
+    cur.execute(f"SELECT video_id FROM {schema}.{TABLE};")
     rows = cur.fetchall()
     video_ids = [row["video_id"] for row in rows]
     return video_ids
