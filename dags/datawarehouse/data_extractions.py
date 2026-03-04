@@ -95,7 +95,7 @@ def update_rows(cur, conn, schema: str, rows: list[dict]):
         raise
 
 
-def delete_rows(cur, conn, schema: str, rows: list[dict]):
+def delete_rows(cur, conn, schema: str, rows: set[str]):
     """Delete video stats rows from the specified schema table."""
     if schema not in VALID_SCHEMAS:
         raise ValueError(f"Invalid schema: {schema}. Must be one of {VALID_SCHEMAS}")

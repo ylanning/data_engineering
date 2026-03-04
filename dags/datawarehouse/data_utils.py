@@ -65,9 +65,8 @@ def create_table(schema: str, table: str) -> None:
     print(f"Table {table} created successfully in schema {schema}.")
 
 
-def get_video_ids_from_db(schema: str) -> list[str]:
+def get_video_ids_from_db(cur, schema: str) -> list[str]:
     """Fetch video IDs from the specified table."""
-    conn, cur = get_conn_cursor()
 
     cur.execute(f"SELECT video_id FROM {schema}.{table};")
     rows = cur.fetchall()
